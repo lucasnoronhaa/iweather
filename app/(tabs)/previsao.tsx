@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -19,9 +18,8 @@ const forecast: { day: string; temp: number; icon: IoniconName }[] = [
 export default function App() {
   return (
       <GestureHandlerRootView style={{flex: 1 }}>
-    <LinearGradient colors={['#2b3a67', '#61a0ff']} style={styles.container}>
       {/*Cabeçalho */}
-      <View style={styles.header}>
+      <View style={styles.container}>
         <Text style={styles.city}>São Paulo</Text>
         <Text style={styles.date}>Segunda, 06 de Setembro</Text>
       </View>
@@ -47,7 +45,6 @@ export default function App() {
       {/*Status Bar */}
 
       <StatusBar style="light" />
-    </LinearGradient>
     </GestureHandlerRootView>
   );
 }
@@ -55,11 +52,13 @@ export default function App() {
 const styles = StyleSheet.create({
   container: { 
     flex: 1,
-    paddingTop: 50
+    paddingTop: 50,
+    backgroundColor : "#13131A",
   },
   header: { 
     alignItems: "center",
-    marginBottom: 40
+    marginBottom: 40,
+    backgroundColor : "#13131A"
   },
   city: { color: "#fff",
     fontSize: 25,
