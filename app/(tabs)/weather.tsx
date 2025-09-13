@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, ImageBackground } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -8,20 +8,33 @@ export default function WeatherScreen() {
     return (
         <View style={styles.container}>
             {/* Card de clima */}
-            <View style={styles.card}>
+            <ImageBackground
+                source={require('../../assets/images/image.png')}
+                style={styles.card}
+                imageStyle={{ borderRadius: 10, objectFit: 'cover', height: '100%', width: '100%' }}
+                >
                 <Text style={styles.city}>{city}</Text>
                 <Text style={styles.date}>Segunda-feira, 15 de maio de 2023</Text>
 
-                    {/* Temperatura + Ícone */}
+                {/* Temperatura + Ícone */}
                 <View style={styles.row}>
                     <Text style={styles.temp}>28ºC</Text>
                     <MaterialCommunityIcons name="weather-night-partly-cloudy" size={64} color="#fff" />
                 </View>
                 <Text style={styles.condition}>Parcialmente nublado</Text>
-            </View>
+            </ImageBackground>
 
                 {/* Card com outros detalhes */}
             <View style={styles.detalhes}>
+                <Text style={styles.detailText}>Sensação térmica: 30ºC</Text>
+                <Text style={styles.detailText}>Probabilidade de chuva: 0%</Text>
+                <Text style={styles.detailText}>Velocidade do vento: 8 km/h</Text>
+                <Text style={styles.detailText}>Umidade do ar 40%</Text>
+                <Text style={styles.detailText}>Índice UV 5</Text>
+            </View>
+
+                {/* Próximos dias */}
+            <View style={styles.nextDays}>
                 <Text style={styles.detailText}>Sensação térmica: 30ºC</Text>
                 <Text style={styles.detailText}>Probabilidade de chuva: 0%</Text>
                 <Text style={styles.detailText}>Velocidade do vento: 8 km/h</Text>
@@ -86,5 +99,13 @@ const styles = StyleSheet.create({
         color: "#aaa",
         marginBottom: 4,
         textAlign: "justify"
+    },
+    nextDays: {
+        marginTop: 8,
+        width: "95%",
+        backgroundColor: "#1c1c24",
+        padding: 20,
+        borderRadius: 10,
+        alignItems: "flex-start"
     },
 });
