@@ -1,9 +1,13 @@
 import { useState } from "react";
 import { Text, StyleSheet, View, TextInput, FlatList, TouchableOpacity } from "react-native";
+import { useRouter } from "expo-router";
 
 export default function HomeScreen() {
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<string[]>([]);
+  const router = useRouter();
+
+  // Simulação de busca - em um app real, você faria uma chamada a uma API
 
   const cities = [
     "São Paulo, BR",
@@ -61,6 +65,10 @@ export default function HomeScreen() {
               onPress={() => {
                 setSearch(item);
                 setResults([]);
+                router.push({
+                  pathname: "/weather",
+                  params: { city: item },
+                });
               }}
             >
               <Text style={styles.suggestionText}>{item}</Text>
