@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet, ImageBackground, FlatList } from "react-native";
-import { useLocalSearchParams } from "expo-router";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useLocalSearchParams } from "expo-router";
+import { FlatList, StyleSheet, Text, View, ImageBackground } from "react-native";
 
 export default function WeatherScreen() {
     const {city} = useLocalSearchParams();
@@ -13,67 +13,81 @@ export default function WeatherScreen() {
 
     type ForecastItem = {
         day: string;
-        temp: string;
+        max: string;
+        min: string;
         icon: WeatherIconName;
     };
 
     const forecast: ForecastItem[] = [
-        {day: "Ter", temp: "28º / 20º", icon: "weather-sunny"},
-        {day: "Qua", temp: "26º / 19º", icon: "weather-cloudy"},
-        {day: "Qui", temp: "24º/ 18º", icon: "weather-rainy"},
-        {day: "Sex", temp: "25º/ 17º", icon: "weather-night-partly-cloudy"},
-        {day: "Sáb", temp: "26º/ 21º", icon: "weather-sunny"},
+        {day: "Ter", max: "28°", min: "20°", icon: "weather-sunny"},
+        {day: "Qua", max: "26°", min: "16°", icon: "weather-cloudy"},
+        {day: "Qui", max: "30°", min: "25°", icon: "weather-rainy"},
+        {day: "Sex", max: "25°", min: "20°", icon: "weather-night-partly-cloudy"},
+        {day: "Sáb", max: "32°", min: "22°", icon: "weather-sunny"},
     ];
 
     return (
         <View style={styles.container}>
-            {/* Card de clima */}
+            
+            {/* 1. Card Principal */}
             <ImageBackground
                 source={require('../../assets/images/image.png')}
                 style={styles.card}
-                imageStyle={{ borderRadius: 10, objectFit: 'cover', height: '100%', width: '100%' }}
-                >
-                <Text style={styles.city}>{city}</Text>
-                <Text style={styles.date}>Segunda-feira, 15 de maio de 2023</Text>
-
-                {/* Temperatura + Ícone */}
-                <View style={styles.row}>
-                    <Text style={styles.temp}>28ºC</Text>
-                    <MaterialCommunityIcons name="weather-night-partly-cloudy" size={64} color="#fff" />
+                imageStyle={{ borderRadius: 20, resizeMode: "cover" }}
+            >
+                <View style={styles.mainCard}>
+                    <Text style={styles.city}>{city}</Text>
+                    <Text style={styles.date}>Segunda-feira, 15 de maio de 2023</Text>
+                    {/* Temperatura + Ícone */}
+                    <View style={styles.row}>
+                        <Text style={styles.temp}>28ºC</Text>
+                        <Text style={styles.tempRange}>26ºC / 32ºC</Text>
+                        <Text style={styles.condition}>Poucas nuvens</Text>
+                        <MaterialCommunityIcons
+                            name="weather-night-partly-cloudy"
+                            size={64}
+                            color="#fff"
+                        />
+                    </View>
+                    <Text style={styles.condition}>Parcialmente nublado</Text>
                 </View>
-                <Text style={styles.condition}>Parcialmente nublado</Text>
             </ImageBackground>
 
-                {/* Card com outros detalhes */}
-            <View style={styles.detailsRow}>
-                <View style={styles.detailCard}>
-                    <MaterialCommunityIcons name="thermometer" size={20} color="#fff" />
-                    <Text style={styles.detailText}>Sensação térmica: 30ºC</Text>
+            {/* 2. Linha de Detalhes */}
+            <View style={styles.detailsList}>
+                <View style={styles.detailRow}>
+                    <MaterialCommunityIcons name="thermometer" size={20} color="#aaa" />
+                    <Text style={styles.detailLabel}>Sensação térmica</Text>
+                    <Text style={styles.detailValue}>30ºC</Text>
                 </View>
                     
-                <View style={styles.detailCard}>
-                    <MaterialCommunityIcons name="weather-rainy" size={20} color="#fff" />
-                    <Text style={styles.detailText}>Probabilidade de chuva: 0%</Text>
+                <View style={styles.detailRow}>
+                    <MaterialCommunityIcons name="weather-rainy" size={20} color="#aaa" />
+                    <Text style={styles.detailLabel}>Probabilidade de chuva</Text>
+                    <Text style={styles.detailValue}>10%</Text>
                 </View>
 
-                <View style={styles.detailCard}>
-                    <MaterialCommunityIcons name="weather-windy" size={20} color="#fff" />
-                    <Text style={styles.detailText}>Velocidade do vento: 8 km/h</Text>
+                <View style={styles.detailRow}>
+                    <MaterialCommunityIcons name="weather-windy" size={20} color="#aaa" />
+                    <Text style={styles.detailLabel}>Velocidade do vento</Text>
+                    <Text style={styles.detailValue}>15 km/h</Text>
                 </View>
 
-                <View style={styles.detailCard}>
-                    <MaterialCommunityIcons name="water-percent" size={20} color="#fff" />
-                    <Text style={styles.detailText}>Umidade do ar 40%</Text>
+                <View style={styles.detailRow}>
+                    <MaterialCommunityIcons name="water-percent" size={20} color="#aaa" />
+                    <Text style={styles.detailLabel}>Umidade do ar</Text>
+                    <Text style={styles.detailValue}>60%</Text>
                 </View>
 
-                <View style={styles.detailCard}>
-                    <MaterialCommunityIcons name="white-balance-sunny" size={20} color="#fff" />
-                    <Text style={styles.detailText}>Índice UV 5</Text>
+                <View style={styles.detailRowUv}>
+                    <MaterialCommunityIcons name="white-balance-sunny" size={20} color="#aaa" />
+                    <Text style={styles.detailLabel}>Índice UV</Text>
+                    <Text style={styles.detailValue}>5</Text>
                 </View>
             </View>
 
-                {/* Próximos dias */}
-            <View style={styles.nextDays}>
+            {/* 3. Forecast */}
+            <View style={styles.forecastList}>
                 <FlatList
                     data={forecast}
                     keyExtractor={(item) => item.day}
@@ -82,12 +96,14 @@ export default function WeatherScreen() {
                     renderItem={({ item }) => (
                         <View style={styles.dayCard}>
                             <Text style={styles.dayText}>{item.day}</Text>
-                            <MaterialCommunityIcons name={item.icon} size={35} color="#fff" />
-                            <Text style={styles.dayText}>{item.temp}</Text>
+                            <MaterialCommunityIcons name={item.icon} size={30} color="#fff" />
+                            <Text style={styles.maxTemp}>{item.max}</Text>
+                            <Text style={styles.minTemp}>{item.min}</Text>
                         </View>
                     )}
                 />
             </View>
+
         </View>
     );
 }
@@ -96,27 +112,30 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#13131a",
-        paddingVertical: 20,
-        alignItems: "center",
-        justifyContent: "flex-start",
-        marginTop: 30,
+        padding: 16
     },
     card: {
-        width: "95%",
-        backgroundColor: "#1c1c24",
+        width: "100%",
+        height: 260,
+        borderRadius: 20,
+        overflow: "hidden",
+        marginBottom: 16
+
+    },
+    mainCard: {
+        borderRadius: 12,
         padding: 20,
-        borderRadius: 10,
-        alignItems: "flex-start"
+        marginBottom: 12,
     },
     city: {
         fontSize: 24,
         fontWeight: "bold",
-        color: "#fff"
+        color: "#fff",
     },
     date: {
         fontSize: 14,
         color: "#aaa",
-        marginBottom: 10
+        marginBottom: 8,
     },
     row: {
         flexDirection: "row",
@@ -126,57 +145,84 @@ const styles = StyleSheet.create({
         marginVertical: 10
     },
     temp: {
-        fontSize: 48,
+        fontSize: 56,
         fontWeight: "bold",
-        color: "#fff"
+        color: "#fff",
+    },
+    tempRange: {
+        fontSize: 16,
+        color: "#ddd",
+        marginTop: 4
     },
     condition: {
-        fontSize: 18,
-        color: "#aaa",
-        marginTop: 8
+        fontSize: 16,
+        color: "#bbb",
+        marginTop: 2
     },
-    detailsRow: {
-        width: "95%",
-        marginTop: 12
+    detailsList: {
+        backgroundColor: "#1c1c24",
+        borderRadius: 12,
+        padding: 20,
+        marginBottom: 12,
     },
-    detailCard: {
+    detailRow: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#1c1c24",
-        marginVertical: 6,
-        padding: 20,
-        borderRadius: 14,
+        paddingVertical: 14,
+        paddingHorizontal: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: "#2a2a34"
+    },
+    detailRowUv: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: 14,
+        paddingHorizontal: 10
     },
     detailText: {
         color: "#ddd",
-        marginLeft: 6,
-        fontSize: 12,
+        marginLeft: 10,
+        fontSize: 14,
     },
-    nextDays: {
-        marginTop: 20,
-        paddingLeft: 10,
-        width: "100%",
+    detailLabel: {
+        flex: 1,
+        marginLeft: 10,
+        color: "#aaa",
+        fontSize: 14
+    },
+    detailValue: {
+        color: "#ffffffb6",
+        fontSize: 14,
+        fontWeight: "bold"
+    },
+    forecastList: {
+        backgroundColor: "#1c1c24",
+        borderRadius: 12,
+        padding: 20,
     },
     dayCard: {
         backgroundColor: "#1c1c24",
         borderRadius: 10,
-        paddingVertical: 14,
-        paddingHorizontal: 18,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
         alignItems: "center",
         justifyContent: "center",
         marginRight: 12,
-        width: 80,
+        width: 70
     },
     dayText: {
         color: "#fff",
         fontSize: 14,
-        textAlign: "center",
-        padding: 4,
         marginBottom: 6
     },
-    tempText: {
-        color: "#aaa",
-        fontSize: 12,
-        marginTop: 6
+    maxTemp: {
+        color: "#fff",
+        fontSize: 14,
+        fontWeight: "bold"
     },
-});
+    minTemp: {
+        color: "#aaa",
+        fontSize: 14
+    },
+}
+);
