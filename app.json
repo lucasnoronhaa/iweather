@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.lucas_noronha.iweather"
     },
     "web": {
       "bundler": "metro",
@@ -37,6 +38,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "000eb961-3e75-4a95-853f-232ed6982711"
+      }
     }
   }
 }

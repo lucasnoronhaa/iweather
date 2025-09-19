@@ -31,26 +31,30 @@ export default function WeatherScreen() {
             
             {/* 1. Card Principal */}
             <ImageBackground
-                source={require('../../assets/images/image.png')}
+                source={require('/home/lucas/iweather/assets/images/image.png')}
                 style={styles.card}
-                imageStyle={{ borderRadius: 20, resizeMode: "cover" }}
+                imageStyle={{ borderRadius: 20}}
             >
-                <View style={styles.mainCard}>
-                    <Text style={styles.city}>{city}</Text>
-                    <Text style={styles.date}>Segunda-feira, 15 de maio de 2023</Text>
-                    {/* Temperatura + Ícone */}
-                    <View style={styles.row}>
+                <Text style={styles.city}>{city}</Text>
+                <Text style={styles.date}>Segunda-feira, 15 de maio de 2023</Text>
+
+                {/* Temperatura + Ícone */}
+                <View style={styles.row}>
+                    <View>
                         <Text style={styles.temp}>28ºC</Text>
-                        <Text style={styles.tempRange}>26ºC / 32ºC</Text>
+                        <Text style={styles.tempMinMax}>26ºC / 32ºC</Text>
                         <Text style={styles.condition}>Poucas nuvens</Text>
-                        <MaterialCommunityIcons
-                            name="weather-night-partly-cloudy"
-                            size={64}
-                            color="#fff"
-                        />
                     </View>
-                    <Text style={styles.condition}>Parcialmente nublado</Text>
+
+                    <MaterialCommunityIcons
+                        name="weather-night-partly-cloudy"
+                        size={64}
+                        color="#fff"
+                    />
                 </View>
+
+                <Text style={styles.condition}>Parcialmente nublado</Text>
+                
             </ImageBackground>
 
             {/* 2. Linha de Detalhes */}
@@ -116,10 +120,10 @@ const styles = StyleSheet.create({
     },
     card: {
         width: "100%",
-        height: 260,
+        padding: 20,
         borderRadius: 20,
-        overflow: "hidden",
-        marginBottom: 16
+        marginBottom: 16,
+        overflow: "hidden"
 
     },
     mainCard: {
@@ -134,25 +138,24 @@ const styles = StyleSheet.create({
     },
     date: {
         fontSize: 14,
-        color: "#aaa",
-        marginBottom: 8,
+        color: "#d3d3d3",
     },
     row: {
         flexDirection: "row",
-        alignItems: "center",
         justifyContent: "space-between",
-        width: "100%",
-        marginVertical: 10
+        alignItems: "center",
+        marginTop: 20
     },
     temp: {
-        fontSize: 56,
+        fontSize: 80,
         fontWeight: "bold",
         color: "#fff",
     },
-    tempRange: {
+    tempMinMax: {
         fontSize: 16,
-        color: "#ddd",
-        marginTop: 4
+        color: "#d3d3d3",
+        textTransform: "capitalize",
+        textAlign: "left"
     },
     condition: {
         fontSize: 16,
@@ -191,7 +194,7 @@ const styles = StyleSheet.create({
         fontSize: 14
     },
     detailValue: {
-        color: "#ffffffb6",
+        color: "#fff",
         fontSize: 14,
         fontWeight: "bold"
     },
