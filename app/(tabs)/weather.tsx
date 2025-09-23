@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams } from "expo-router";
-import { FlatList, StyleSheet, Text, View, ImageBackground } from "react-native";
+import { FlatList, ImageBackground, StyleSheet, Text, View } from "react-native";
 
 export default function WeatherScreen() {
     const {city} = useLocalSearchParams();
@@ -31,7 +31,7 @@ export default function WeatherScreen() {
             
             {/* 1. Card Principal */}
             <ImageBackground
-                source={require('/home/lucas/iweather/assets/images/image.png')}
+                source={require('../../assets/images/image.png')}
                 style={styles.card}
                 imageStyle={{ borderRadius: 20}}
             >
