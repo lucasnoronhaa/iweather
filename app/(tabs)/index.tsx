@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Text, StyleSheet, View, TextInput, FlatList, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
+import { useState } from "react";
+import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 export default function HomeScreen() {
   const [search, setSearch] = useState("");
@@ -39,7 +39,7 @@ export default function HomeScreen() {
       {/* Conteúdo */}
       <View style={styles.content}>
         <Text style={styles.title}>
-          Boas vindas ao <Text style={styles.highlight}>TypeWeather</Text>
+          Boas vindas ao <Text style={styles.highlight}>iWeather</Text>
         </Text>
         <Text style={styles.subtitle}>
           Escolha um local para ver a previsão do tempo

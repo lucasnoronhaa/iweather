@@ -26,14 +26,6 @@ export default function WeatherScreen() {
         {day: "Sáb", max: "32°", min: "22°", icon: "weather-sunny"},
     ];
 
-    const detailsData = [
-        { icon: "thermometer" as const, label: "Sensação térmica", value: "30ºC" },
-        { icon: "weather-rainy" as const, label: "Probabilidade de chuva", value: "10%" },
-        { icon: "weather-windy" as const, label: "Velocidade do vento", value: "15 km/h" },
-        { icon: "water-percent" as const, label: "Umidade do ar", value: "60%" },
-        { icon: "white-balance-sunny" as const, label: "Índice UV", value: "5" },
-    ];
-
     return (
         <View style={styles.container}>
             
@@ -96,13 +88,6 @@ export default function WeatherScreen() {
                     <Text style={styles.detailLabel}>Índice UV</Text>
                     <Text style={styles.detailValue}>5</Text>
                 </View>
-                {detailsData.map((detail, index) => (
-                    <View key={detail.label} style={[styles.detailRow, index === detailsData.length - 1 && { borderBottomWidth: 0 }]}>
-                        <MaterialCommunityIcons name={detail.icon} size={20} color="#aaa" />
-                        <Text style={styles.detailLabel}>{detail.label}</Text>
-                        <Text style={styles.detailValue}>{detail.value}</Text>
-                    </View>
-                ))}
             </View>
 
             {/* 3. Forecast */}
