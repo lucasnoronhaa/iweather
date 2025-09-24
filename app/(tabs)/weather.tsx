@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams } from "expo-router";
-import { FlatList, ImageBackground, StyleSheet, Text, View, ActivityIndicator  } from "react-native";
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, ImageBackground, StyleSheet, Text, View } from "react-native";
 import { getWeatherByCity } from '../../scripts/weatherApi';
 
 export default function WeatherScreen() {
