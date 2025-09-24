@@ -31,9 +31,9 @@ export default function WeatherScreen() {
             
             {/* 1. Card Principal */}
             <ImageBackground
-                source={require('../../assets/images/image.png')}
+                    source={require('../../assets/images/image.png')}
                 style={styles.card}
-                imageStyle={{ borderRadius: 20}}
+                imageStyle={{ borderRadius: 20, resizeMode: 'cover' }}
             >
                 <Text style={styles.city}>{city}</Text>
                 <Text style={styles.date}>Segunda-feira, 15 de maio de 2023</Text>
@@ -116,10 +116,9 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#13131a",
-        padding: 16
+        paddingHorizontal: 14
     },
     card: {
-        width: "100%",
         padding: 20,
         borderRadius: 20,
         marginBottom: 16,
