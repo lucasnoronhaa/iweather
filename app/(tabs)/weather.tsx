@@ -2,25 +2,68 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, ImageBackground, StyleSheet, Text, View } from "react-native";
-import { getWeatherByCity } from '../../scripts/weatherApi';
+import { get5DayForecast, getWeatherByCity } from '../../scripts/weatherApi';
 
 export default function WeatherScreen() {
     const {city} = useLocalSearchParams();
+    console.log("Parâmetros recebidos na tela de clima:", city);
+    
+    // 1. Definir interfaces para a resposta da API
+    interface WeatherData {
+        name: string;
+        sys: {
+            country: string;
+        };
+        main: {
+            temp: number;
+            temp_min: number;
+            temp_max: number;
+            feels_like: number;
+            humidity: number;
+        };
+        weather: {
+            description: string;
+            main: string; // Ex: "Clouds", "Clear", "Rain"
+        }[];
+        wind: {
+            speed: number;
+        };
+    }
 
-    const [weatherData, setWeatherData] = useState(null);
+    // Interface para os itens da lista de previsão
+    interface ForecastListItem {
+        dt: number;
+        main: {
+            temp_max: number;
+            temp_min: number;
+        };
+        weather: {
+            main: string;
+        }[];
+    }
+
+    // 2. Tipar os estados
+    const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
+    const [forecastData, setForecastData] = useState<ForecastListItem[]>([]);
 
     useEffect(() => {
     const loadWeatherData = async () => {
+        setError(null); // Limpa erros anteriores ao iniciar uma nova busca
         if (!city) return; // Não faz nada se não tiver uma cidade
 
         try {
             setLoading(true); // Avisa que estamos começando a carregar
             const data = await getWeatherByCity(city as string);
+            const forecastData = await get5DayForecast(city as string);
+            console.log("DADOS DO TEMPO:", data);
             setWeatherData(data);
+            setForecastData(forecastData); 
         } catch (err) {
-            setError(err.message); // Salva a mensagem de erro se a busca falhar
+            // 3. Tratamento de erro mais seguro
+            setError("Não foi possível carregar os dados do tempo. Verifique o nome da cidade e tente novamente.");
+            setWeatherData(null); // <-- Limpa os dados antigos em caso de erro
         } finally {
             setLoading(false); // Avisa que terminamos de carregar (com sucesso ou erro)
         }
@@ -29,6 +72,23 @@ export default function WeatherScreen() {
     loadWeatherData();
 }, [city]); // Este array faz o código rodar novamente se a cidade mudar
 
+    // Função para obter a data atual formatada
+    const getCurrentDate = () => {
+        return new Date().toLocaleDateString('pt-BR', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+        });
+    };
+
+    // Mapeamento simples de condição para ícone (pode ser expandido)
+    const weatherIconMap: { [key: string]: WeatherIconName } = {
+        Clear: "weather-sunny",
+        Clouds: "weather-cloudy",
+        Rain: "weather-rainy",
+        Drizzle: "weather-rainy",
+    };
     type WeatherIconName =
         | "weather-sunny"
         | "weather-cloudy"
@@ -42,14 +102,6 @@ export default function WeatherScreen() {
         icon: WeatherIconName;
     };
 
-    const forecast: ForecastItem[] = [
-        {day: "Ter", max: "28°", min: "20°", icon: "weather-sunny"},
-        {day: "Qua", max: "26°", min: "16°", icon: "weather-cloudy"},
-        {day: "Qui", max: "30°", min: "25°", icon: "weather-rainy"},
-        {day: "Sex", max: "25°", min: "20°", icon: "weather-night-partly-cloudy"},
-        {day: "Sáb", max: "32°", min: "22°", icon: "weather-sunny"},
-    ];
-
     if (loading) {
         return (
             <View style={styles.container}>
@@ -61,7 +113,7 @@ export default function WeatherScreen() {
     if (error) {
         return (
             <View style={styles.container}>
-                <Text style={{ color: 'red', fontSize: 18 }}>{error}</Text>
+                <Text style={{ color: '#ff6b6b', fontSize: 18, textAlign: 'center', padding: 20 }}>{error}</Text>
             </View>
         );
     }
@@ -75,26 +127,24 @@ export default function WeatherScreen() {
                 style={styles.card}
                 imageStyle={{ borderRadius: 20, resizeMode: 'cover' }}
             >
-                <Text style={styles.city}>{wheaterData?.name}, {weatherData?.sys.country}</Text>
-                <Text style={styles.date}>Segunda-feira, 15 de maio de 2023</Text>
+                <Text style={styles.city}>{weatherData?.name} {weatherData?.sys?.country}</Text>
+                {/* Usando data dinâmica */}
+                <Text style={styles.date}>{getCurrentDate()}</Text>
 
                 {/* Temperatura + Ícone */}
                 <View style={styles.row}>
                     <View>
-                        <Text style={styles.temp}>{Math.round(weatherData?.main?.temp)}</Text>
-                        <Text style={styles.tempMinMax}>{Math.round(weatherData?.main?.temp_min)}C° / {Math.round(weatherData?.main?.temp_max)}C°</Text>
-                        <Text style={styles.condition}>{weatherData?.weather[0]?.description}</Text>
+                        <Text style={styles.temp}>{Math.round(weatherData?.main?.temp ?? 0)}ºC</Text>
+                        <Text style={styles.tempMinMax}>{Math.round(weatherData?.main?.temp_min ?? 0)}°C / {Math.round(weatherData?.main?.temp_max ?? 0)}°C</Text>
+                        <Text style={styles.condition}>{weatherData?.weather[0]?.description ?? 'Carregando...'}</Text>
                     </View>
-
+                    {/* Usando ícone dinâmico */}
                     <MaterialCommunityIcons
-                        name="weather-night-partly-cloudy"
+                        name={weatherIconMap[weatherData?.weather[0]?.main || ''] || 'weather-cloudy'}
                         size={64}
                         color="#fff"
                     />
                 </View>
-
-                <Text style={styles.condition}>Parcialmente nublado</Text>
-                
             </ImageBackground>
 
             {/* 2. Linha de Detalhes */}
@@ -102,13 +152,13 @@ export default function WeatherScreen() {
                 <View style={styles.detailRow}>
                     <MaterialCommunityIcons name="thermometer" size={20} color="#aaa" />
                     <Text style={styles.detailLabel}>Sensação térmica</Text>
-                    <Text style={styles.detailValue}>{Math.round(weatherData?.main?.feels_like)}C°</Text>
+                    <Text style={styles.detailValue}>{Math.round(weatherData?.main?.feels_like ?? 0)}°C</Text>
                 </View>
                     
                 <View style={styles.detailRow}>
                     <MaterialCommunityIcons name="weather-rainy" size={20} color="#aaa" />
                     <Text style={styles.detailLabel}>Probabilidade de chuva</Text>
-                    <Text style={styles.detailValue}>10%</Text>
+                    <Text style={styles.detailValue}>--%</Text>
                 </View>
 
                 <View style={styles.detailRow}>
@@ -126,23 +176,34 @@ export default function WeatherScreen() {
                 <View style={styles.detailRowUv}>
                     <MaterialCommunityIcons name="white-balance-sunny" size={20} color="#aaa" />
                     <Text style={styles.detailLabel}>Índice UV</Text>
-                    <Text style={styles.detailValue}>5</Text>
+                    <Text style={styles.detailValue}>--</Text>
                 </View>
             </View>
 
             {/* 3. Forecast */}
             <View style={styles.forecastList}>
                 <FlatList
-                    data={forecast}
-                    keyExtractor={(item) => item.day}
+                    data={forecastData}
+                    keyExtractor={(item) => item.dt.toString()}
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     renderItem={({ item }) => (
                         <View style={styles.dayCard}>
-                            <Text style={styles.dayText}>{item.day}</Text>
-                            <MaterialCommunityIcons name={item.icon} size={30} color="#fff" />
-                            <Text style={styles.maxTemp}>{item.max}</Text>
-                            <Text style={styles.minTemp}>{item.min}</Text>
+                            {/* Transforma a data completa em dia da semana */}
+                            <Text style={styles.dayText}>
+                                {new Date(item.dt * 1000).toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').replace(/^\w/, c => c.toUpperCase())}
+                            </Text>
+
+                            {/* Ícone dinâmico */}
+                            <MaterialCommunityIcons 
+                                name={weatherIconMap[item.weather[0].main] || 'weather-cloudy'} 
+                                size={30} 
+                                color="#fff" 
+                            />
+
+                            {/* Usando a temperatura do item da previsão */}
+                            <Text style={styles.maxTemp}>{Math.round(item.main.temp_max)}°</Text>
+                            <Text style={styles.minTemp}>{Math.round(item.main.temp_min)}°</Text>
                         </View>
                     )}
                 />

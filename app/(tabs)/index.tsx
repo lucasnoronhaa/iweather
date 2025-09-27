@@ -1,33 +1,49 @@
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { searchCities } from "../../scripts/weatherApi"; // Importa nossa nova função
 
-export default function HomeScreen() {
+// Interface para definir o formato de cada cidade retornada pela API
+interface City {
+  name: string;
+  country: string;
+  state?: string;
+  lat: number;
+  lon: number;
+}
+
+export default function index() {
   const [search, setSearch] = useState("");
-  const [results, setResults] = useState<string[]>([]);
+  const [results, setResults] = useState<City[]>([]);
+  const [isLoading, setIsLoading] = useState(false); // Estado para o "carregando..."
   const router = useRouter();
 
-  // Simulação de busca - em um app real, você faria uma chamada a uma API
-
-  const cities = [
-    "São Paulo, BR",
-    "Rio de Janeiro, BR",
-    "Porto Alegre, BR",
-    "Porto, Portugal",
-    "Lisboa, Portugal",
-  ];
-
-  function handleSearch(text: string) {
-    setSearch(text);
-    if (text.length > 1) {
-      const filtered = cities.filter(city =>
-        city.toLowerCase().includes(text.toLowerCase())
-      );
-      setResults(filtered);
-    } else {
+  // EFEITO PARA BUSCAR NA API COM DEBOUNCE
+  useEffect(() => {
+    if (search.trim().length < 3) {
       setResults([]);
+      return;
     }
-  }
+
+    setIsLoading(true);
+    const delayDebounceFn = setTimeout(async () => {
+      const citiesFound = await searchCities(search);
+      console.log("CIDADES ENCONTRADAS PELA API:", citiesFound);
+      setResults(citiesFound);
+      setIsLoading(false);
+    }, 500); // Espera 500ms após o usuário parar de digitar
+
+    return () => clearTimeout(delayDebounceFn); // Limpa o timeout se o usuário digitar novamente
+  }, [search]); // Roda este efeito sempre que o 'search' mudar
+
+  // Função para formatar o nome da cidade para exibição
+  const formatCityName = (item: City) => {
+    let name = `${item.name}, ${item.country}`;
+    if (item.state) {
+      name = `${item.name}, ${item.state}, ${item.country}`;
+    }
+    return name;
+  };
 
   return (
     <View style={styles.container}>
@@ -46,32 +62,36 @@ export default function HomeScreen() {
         </Text>
 
         {/* Campo de busca */}
-        <TextInput
-          placeholder="Buscar local"
-          placeholderTextColor="#555"
-          style={styles.input}
-          value={search}
-          onChangeText={handleSearch}
-        />
+        <View style={styles.inputContainer}>
+          <TextInput
+            placeholder="Buscar local"
+            placeholderTextColor="#555"
+            style={styles.input}
+            value={search}
+            onChangeText={setSearch} // Agora só atualiza o estado
+          />
+          {isLoading && <ActivityIndicator size="small" color="#fff" />}
+        </View>
 
         {/* Lista de sugestões */}
         <FlatList
           style={styles.suggestionList}
           data={results}
-          keyExtractor={(item) => item}
+          keyExtractor={(item) => `${item.lat}-${item.lon}`}
           renderItem={({ item }) => (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.suggestion}
               onPress={() => {
-                setSearch(item);
+                const city = `${item.name}, ${item.country}`;
+                setSearch(city);
                 setResults([]);
                 router.push({
                   pathname: "/weather",
-                  params: { city: item },
+                  params: { city: city },
                 });
               }}
             >
-              <Text style={styles.suggestionText}>{item}</Text>
+              <Text style={styles.suggestionText}>{formatCityName(item)}</Text>
             </TouchableOpacity>
           )}
         />
@@ -115,17 +135,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 20,
   },
-  input: {
-    width: "100%",
-    backgroundColor: "#1c1c24",
-    padding: 14,
-    borderRadius: 8,
-    color: "#fff",
-    fontSize: 16,
-    marginBottom: 10,
-  },
   suggestionList: {
-    width: "100%", // faz a lista ter o mesmo tamanho do input
+    width: "100%",
+    marginTop: 10,
   },
   suggestion: {
     backgroundColor: "#1c1c24",
@@ -136,5 +148,23 @@ const styles = StyleSheet.create({
   suggestionText: {
     color: "#fff",
     fontSize: 16,
+  },
+  inputContainer: {
+    width: "100%",
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: "#1c1c24",
+    borderRadius: 8,
+    paddingHorizontal: 14,
+  },
+  input: {
+    flex: 1,
+    paddingVertical: 14,
+    color: "#fff",
+    fontSize: 16,
+    width: "100%",
+    backgroundColor: "#1c1c24",
+    borderRadius: 8,
+    marginBottom: 10
   },
 });
