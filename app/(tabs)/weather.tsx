@@ -2,12 +2,12 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, ImageBackground, StyleSheet, Text, View } from "react-native";
-import { get5DayForecast, getWeatherByCity } from '../../scripts/weatherApi';
+import { get5DayForecast, getWeatherByCoords } from '../../scripts/weatherApi';
 
 export default function WeatherScreen() {
-    const {city} = useLocalSearchParams();
-    console.log("Parâmetros recebidos na tela de clima:", city);
-    
+    const { lat, lon, city } = useLocalSearchParams<{ lat: string; lon: string; city: string }>();
+    console.log("Parâmetros recebidos na tela de clima:", { lat, lon, city });
+
     // 1. Definir interfaces para a resposta da API
     interface WeatherData {
         name: string;
@@ -28,6 +28,18 @@ export default function WeatherScreen() {
         wind: {
             speed: number;
         };
+        // Adicionando os campos que vêm da API One Call
+        current: {
+            temp: number;
+            feels_like: number;
+            humidity: number;
+            wind_speed: number;
+            weather: {
+                description: string;
+                main: string;
+            }[];
+        };
+        daily: any[]; // Simplificando por agora, mas pode ser tipado
     }
 
     // Interface para os itens da lista de previsão
@@ -51,12 +63,12 @@ export default function WeatherScreen() {
     useEffect(() => {
     const loadWeatherData = async () => {
         setError(null); // Limpa erros anteriores ao iniciar uma nova busca
-        if (!city) return; // Não faz nada se não tiver uma cidade
+        if (!lat || !lon) return; // Não faz nada se não tiver lat/lon
 
         try {
             setLoading(true); // Avisa que estamos começando a carregar
-            const data = await getWeatherByCity(city as string);
-            const forecastData = await get5DayForecast(city as string);
+            const data = await getWeatherByCoords(lat, lon);
+            const forecastData = await get5DayForecast(lat, lon);
             console.log("DADOS DO TEMPO:", data);
             setWeatherData(data);
             setForecastData(forecastData); 
@@ -70,7 +82,7 @@ export default function WeatherScreen() {
     };
 
     loadWeatherData();
-}, [city]); // Este array faz o código rodar novamente se a cidade mudar
+}, [lat, lon]); // Este array faz o código rodar novamente se a cidade mudar
 
     // Função para obter a data atual formatada
     const getCurrentDate = () => {
@@ -127,20 +139,20 @@ export default function WeatherScreen() {
                 style={styles.card}
                 imageStyle={{ borderRadius: 20, resizeMode: 'cover' }}
             >
-                <Text style={styles.city}>{weatherData?.name} {weatherData?.sys?.country}</Text>
+                <Text style={styles.city}>{city || 'Carregando...'}</Text>
                 {/* Usando data dinâmica */}
                 <Text style={styles.date}>{getCurrentDate()}</Text>
 
                 {/* Temperatura + Ícone */}
                 <View style={styles.row}>
                     <View>
-                        <Text style={styles.temp}>{Math.round(weatherData?.main?.temp ?? 0)}ºC</Text>
-                        <Text style={styles.tempMinMax}>{Math.round(weatherData?.main?.temp_min ?? 0)}°C / {Math.round(weatherData?.main?.temp_max ?? 0)}°C</Text>
-                        <Text style={styles.condition}>{weatherData?.weather[0]?.description ?? 'Carregando...'}</Text>
+                        <Text style={styles.temp}>{Math.round(weatherData?.current?.temp ?? 0)}ºC</Text>
+                        <Text style={styles.tempMinMax}>{Math.round(weatherData?.daily[0]?.temp?.min ?? 0)}°C / {Math.round(weatherData?.daily[0]?.temp?.max ?? 0)}°C</Text>
+                        <Text style={styles.condition}>{weatherData?.current?.weather[0]?.description ?? 'Carregando...'}</Text>
                     </View>
                     {/* Usando ícone dinâmico */}
                     <MaterialCommunityIcons
-                        name={weatherIconMap[weatherData?.weather[0]?.main || ''] || 'weather-cloudy'}
+                        name={weatherIconMap[weatherData?.current?.weather[0]?.main || ''] || 'weather-cloudy'}
                         size={64}
                         color="#fff"
                     />
@@ -152,7 +164,7 @@ export default function WeatherScreen() {
                 <View style={styles.detailRow}>
                     <MaterialCommunityIcons name="thermometer" size={20} color="#aaa" />
                     <Text style={styles.detailLabel}>Sensação térmica</Text>
-                    <Text style={styles.detailValue}>{Math.round(weatherData?.main?.feels_like ?? 0)}°C</Text>
+                    <Text style={styles.detailValue}>{Math.round(weatherData?.current?.feels_like ?? 0)}°C</Text>
                 </View>
                     
                 <View style={styles.detailRow}>
@@ -164,13 +176,13 @@ export default function WeatherScreen() {
                 <View style={styles.detailRow}>
                     <MaterialCommunityIcons name="weather-windy" size={20} color="#aaa" />
                     <Text style={styles.detailLabel}>Velocidade do vento</Text>
-                    <Text style={styles.detailValue}>{weatherData?.wind?.speed} km/h</Text>
+                    <Text style={styles.detailValue}>{weatherData?.current?.wind_speed} km/h</Text>
                 </View>
 
                 <View style={styles.detailRow}>
                     <MaterialCommunityIcons name="water-percent" size={20} color="#aaa" />
                     <Text style={styles.detailLabel}>Umidade do ar</Text>
-                    <Text style={styles.detailValue}>{weatherData?.main?.humidity}%</Text>
+                    <Text style={styles.detailValue}>{weatherData?.current?.humidity}%</Text>
                 </View>
 
                 <View style={styles.detailRowUv}>
@@ -217,7 +229,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#13131a",
-        paddingHorizontal: 14
+        paddingHorizontal: 14,
+        paddingTop: 50
     },
     card: {
         padding: 20,

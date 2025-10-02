@@ -82,12 +82,15 @@ export default function index() {
             <TouchableOpacity
               style={styles.suggestion}
               onPress={() => {
-                const city = `${item.name}, ${item.country}`;
-                setSearch(city);
+                // Formata o nome para exibir no campo de busca
+                const cityName = formatCityName(item);
+                setSearch(cityName);
+                // Limpa os resultados para a lista desaparecer
                 setResults([]);
+                // Navega para a tela de clima passando lat e lon
                 router.push({
                   pathname: "/weather",
-                  params: { city: city },
+                  params: { lat: item.lat, lon: item.lon, city: cityName },
                 });
               }}
             >

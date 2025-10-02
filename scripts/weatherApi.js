@@ -1,10 +1,10 @@
 const API_KEY = process.env.EXPO_PUBLIC_WEATHER_API_KEY;
 const BASE_URL = 'https://api.openweathermap.org/data/3.0/onecall';
 
-export async function getWeatherByCity(city) {
+export async function getWeatherByCoords(lat, lon) {
     try {
         const response = await fetch(
-            `${BASE_URL}?q=${city}&appid=${API_KEY}&units=metric&lang=pt_br`
+            `${BASE_URL}?lat=${lat}&lon=${lon}&exclude=minutely,hourly,alerts&appid=${API_KEY}&units=metric&lang=pt_br`
         );
         const data = await response.json();
 
@@ -19,9 +19,9 @@ export async function getWeatherByCity(city) {
     }
 }
 
-export const get5DayForecast = async (city) => {
+export const get5DayForecast = async (lat, lon) => {
     const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${API_KEY}&units=metric&lang=pt_br`
+        `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=pt_br`
     );
     if (!response.ok) {
         throw new Error('Não foi possivel obter a previsão dos próximos dias.');
