@@ -1,8 +1,8 @@
-import 'react-native-url-polyfill/auto';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { AuthProvider, useAuth } from '../context/AuthContext';
 import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
+import 'react-native-url-polyfill/auto';
+import { AuthProvider, useAuth } from '../context/AuthContext';
 
 const InitialLayout = () => {
   const { session, loading } = useAuth();
