@@ -29,7 +29,7 @@ const InitialLayout = () => {
   }
 
   return (
-    <Stack>
+    <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)/login" options={{ headerShown: false, presentation: 'modal' }} />
     </Stack>

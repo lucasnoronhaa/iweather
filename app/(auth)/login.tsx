@@ -1,24 +1,43 @@
 import { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Text, Alert } from 'react-native';
+import { supabase } from '../../lib/supabase';
 
 export default function LoginScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const handleLogin = async () => {
-        setLoading(true);
-        // A lógica de login com Supabase vem a seguir
-        Alert.alert('Login', `Tentando entrar com: ${email}`);
-        setLoading(false);
-    };
+    // Função para realizar o login
+  const handleLogin = async () => {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    });
 
-    const handleSignUp = async () => {
-        setLoading(true);
-        // A lógica de cadastro com Supabase vem a seguir
-        Alert.alert('Cadastro', `Tentando cadastrar com: ${email}`);
-        setLoading(false);
-    };
+    if (error) {
+      Alert.alert('Erro no Login', error.message);
+    }
+    // Se o login for bem-sucedido, o onAuthStateChange no AuthContext vai detectar
+    // a nova sessão e o _layout.tsx vai redirecionar automaticamente.
+    setLoading(false);
+  };
+
+    // Função para realizar o cadastro
+  const handleSignUp = async () => {
+    setLoading(true);
+    const { data, error } = await supabase.auth.signUp({
+      email: email,
+      password: password,
+    });
+
+    if (error) {
+      Alert.alert('Erro no Cadastro', error.message);
+    } else if (!data.session) {
+      Alert.alert('Cadastro realizado', 'Por favor, verifique seu email para confirmar a conta!');
+    }
+    setLoading(false);
+  };
 
     return (
         <View style={styles.container}>
