@@ -1,74 +1,101 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, ImageBackground, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, Image, StyleSheet, Text, View } from "react-native";
 import { getWeatherData } from '../../scripts/weatherApi';
+
+// Tipagem para os nomes dos ícones, para mais segurança
+type WeatherIconName = "weather-sunny" | "weather-cloudy" | "weather-rainy" | "weather-night-partly-cloudy" | "weather-snowy" | "weather-fog" | "weather-lightning";
 
 export default function WeatherScreen() {
     const { lat, lon, city } = useLocalSearchParams<{ lat: string; lon: string; city: string }>();
-    console.log("Parâmetros recebidos na tela de clima:", { lat, lon, city });
 
-    // 1. Definir interfaces para a resposta da API
-    interface WeatherData {
-        name: string;
-        sys: {
-            country: string;
+    // Tipagem para as chaves de condição e momento
+    type WeatherCondition = 'Clear' | 'Clouds' | 'Rain' | 'Thunderstorm' | 'Drizzle' | 'Snow' | 'Mist' | 'Default';
+    type Moment = 'day' | 'night';
+    type BackgroundImagesType = {
+        [key in WeatherCondition]: {
+            [key in Moment]: any;
         };
-        main: {
-            temp: number;
-            temp_min: number;
-            temp_max: number;
-            feels_like: number;
-            humidity: number;
-        };
-        weather: {
-            description: string;
-            main: string; // Ex: "Clouds", "Clear", "Rain"
-        }[];
-        wind: {
-            speed: number;
-        };
-        // Adicionando os campos que vêm da API One Call
-        current: {
-            temp: number;
-            feels_like: number;
-            humidity: number;
-            wind_speed: number;
-            uvi: number;
-            weather: {
-                description: string;
-                main: string;
-            }[];
-        };
-        daily: any[]; // Simplificando por agora, mas pode ser tipado
-    }
+    };
 
-    // Interface para os itens da lista de previsão
-    interface ForecastListItem {
-        dt: number;
-        main: {
-            temp_max: number;
-            temp_min: number;
-        };
-        weather: {
-            main: string;
-        }[];
-    }
+    // Mapa de imagens de fundo
+    const backgroundImages: BackgroundImagesType = {
+        Clear: {
+            day: require('../../assets/images/Weather=Clear, Moment=Day.png'),
+            night: require('../../assets/images/Weather=Clear, Moment=Night.png'),
+        },
+        Clouds: {
+            day: require('../../assets/images/Weather=Cloudy, Moment=Day.png'),
+            night: require('../../assets/images/Weather=Cloudy, Moment=Night.png'),
+        },
+        Rain: {
+            day: require('../../assets/images/Weather=Rain, Moment=Day.png'),
+            night: require('../../assets/images/Weather=Rain, Moment=Night.png'),
+        },
+        Thunderstorm: {
+            day: require('../../assets/images/Weather=Storm, Moment=Day.png'),
+            night: require('../../assets/images/Weather=Storm, Moment=Night.png'),
+        },
+        // Adicionando mais condições para cobrir mais casos
+        Drizzle: {
+            day: require('../../assets/images/Weather=Rain, Moment=Day.png'),
+            night: require('../../assets/images/Weather=Rain, Moment=Night.png'),
+        },
+        Snow: {
+            day: require('../../assets/images/Weather=Snow, Moment=Day.png'), // Supondo que você tenha essas imagens
+            night: require('../../assets/images/Weather=Snow, Moment=Night.png'), // Supondo que você tenha essas imagens
+        },
+        Mist: {
+            day: require('../../assets/images/Weather=Mist, Moment=Day.png'), // Supondo que você tenha essas imagens
+            night: require('../../assets/images/Weather=Mist, Moment=Night.png'), // Supondo que você tenha essas imagens
+        },
+        Default: {
+            day: require('../../assets/images/image.png'),
+            night: require('../../assets/images/image.png'),
+        }
+    };
 
-    // 2. Tipar os estados
-    const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+    // Mapa de condições da API para nomes de ícones
+    const weatherIconMap: { [key: string]: WeatherIconName } = {
+        Clear: "weather-sunny",
+        Clouds: "weather-cloudy",
+        Rain: "weather-rainy",
+        Drizzle: "weather-rainy",
+        Thunderstorm: "weather-lightning",
+        Snow: "weather-snowy",
+        Mist: "weather-fog",
+        Fog: "weather-fog",
+    };
+
+    const [weatherData, setWeatherData] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [backgroundImage, setBackgroundImage] = useState(backgroundImages.Default.day);
 
     useEffect(() => {
-    const loadWeatherData = async () => {
-        setError(null); // Limpa erros anteriores ao iniciar uma nova busca
-        if (!lat || !lon) return; // Não faz nada se não tiver lat/lon
+        const loadWeatherData = async () => {
+            try {
+                if (!lat || !lon) {
+                    setError("Latitude ou longitude não fornecidas.");
+                    setLoading(false);
+                    return;
+                }
+                const data = await getWeatherData(lat, lon);
+                setWeatherData(data);
 
-        try {
-            setLoading(true); // Avisa que estamos começando a carregar
-            const data = await getWeatherData(lat, lon);
-            setWeatherData(data);
+                if (data && data.current) {
+                    const currentTime = data.current.dt;
+                    const sunrise = data.current.sunrise;
+                    const sunset = data.current.sunset;
+                    const moment: Moment = (currentTime > sunrise && currentTime < sunset) ? 'day' : 'night';
+                    // Garante que a condição seja uma das chaves válidas
+                    const rawCondition = data.current.weather[0].main as string;
+                    const condition: WeatherCondition = (['Clear', 'Clouds', 'Rain', 'Thunderstorm', 'Drizzle', 'Snow', 'Mist'].includes(rawCondition) ? rawCondition : 'Default') as WeatherCondition;
+
+                    const background = backgroundImages[condition][moment] || backgroundImages.Default[moment];
+                    setBackgroundImage(background);
+                }
             } catch (err) {
                 setError("Não foi possível carregar os dados do tempo.");
             } finally {
@@ -76,120 +103,45 @@ export default function WeatherScreen() {
             }
         };
 
-    loadWeatherData();
-}, [lat, lon]); // Este array faz o código rodar novamente se a cidade mudar
+        loadWeatherData();
+    }, [lat, lon]);
 
-    // Função para obter a data atual formatada
-    const getCurrentDate = () => {
-        return new Date().toLocaleDateString('pt-BR', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-        });
-    };
-
-    // Mapeamento simples de condição para ícone (pode ser expandido)
-    const weatherIconMap: { [key: string]: WeatherIconName } = {
-        Clear: "weather-sunny",
-        Clouds: "weather-cloudy",
-        Rain: "weather-rainy",
-        Drizzle: "weather-rainy",
-    };
-    type WeatherIconName =
-        | "weather-sunny"
-        | "weather-cloudy"
-        | "weather-rainy"
-        | "weather-night-partly-cloudy";
-
-    type ForecastItem = {
-        day: string;
-        max: string;
-        min: string;
-        icon: WeatherIconName;
-    };
+    const getCurrentDate = () => new Date().toLocaleDateString('pt-BR', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    });
 
     if (loading) {
-        return (
-            <View style={styles.container}>
-                <ActivityIndicator size="large" color="#8FB2F5" />
-            </View>
-        );
+        return <View style={styles.container}><ActivityIndicator size="large" color="#8FB2F5" /></View>;
     }
 
     if (error) {
-        return (
-            <View style={styles.container}>
-                <Text style={{ color: '#ff6b6b', fontSize: 18, textAlign: 'center', padding: 20 }}>{error}</Text>
-            </View>
-        );
+        return <View style={styles.container}><Text style={styles.errorText}>{error}</Text></View>;
     }
 
     return (
         <View style={styles.container}>
-            
-            {/* 1. Card Principal */}
-            <ImageBackground
-                    source={require('../../assets/images/image.png')}
-                style={styles.card}
-                imageStyle={{ borderRadius: 20, resizeMode: 'cover' }}
-            >
-                <Text style={styles.city}>{city || 'Carregando...'}</Text>
-                {/* Usando data dinâmica */}
+            <View style={styles.card}>
+                <Image source={backgroundImage} style={[StyleSheet.absoluteFillObject, { borderRadius: 20 }]} />
+                <Text style={styles.city}>{city || weatherData?.timezone.split('/')[1].replace('_', ' ')}</Text>
                 <Text style={styles.date}>{getCurrentDate()}</Text>
-
-                {/* Temperatura + Ícone */}
                 <View style={styles.row}>
                     <View>
                         <Text style={styles.temp}>{Math.round(weatherData?.current?.temp ?? 0)}ºC</Text>
                         <Text style={styles.tempMinMax}>{Math.round(weatherData?.daily[0]?.temp?.min ?? 0)}°C / {Math.round(weatherData?.daily[0]?.temp?.max ?? 0)}°C</Text>
                         <Text style={styles.condition}>{weatherData?.current?.weather[0]?.description ?? 'Carregando...'}</Text>
                     </View>
-                    {/* Usando ícone dinâmico */}
-                    <MaterialCommunityIcons
-                        name={weatherIconMap[weatherData?.current?.weather[0]?.main || ''] || 'weather-cloudy'}
-                        size={64}
-                        color="#fff"
-                    />
-                </View>
-            </ImageBackground>
-
-            {/* 2. Linha de Detalhes */}
-            <View style={styles.detailsList}>
-                <View style={styles.detailRow}>
-                    <MaterialCommunityIcons name="thermometer" size={20} color="#aaa" />
-                    <Text style={styles.detailLabel}>Sensação térmica</Text>
-                    <Text style={styles.detailValue}>{Math.round(weatherData?.current?.feels_like ?? 0)}°C</Text>
-                </View>
-                    
-                <View style={styles.detailRow}>
-                    <MaterialCommunityIcons name="weather-rainy" size={20} color="#aaa" />
-                    <Text style={styles.detailLabel}>Probabilidade de chuva</Text>
-                    <Text style={styles.detailValue}>
-                        {weatherData?.daily[0] ? `${(weatherData.daily[0].pop * 100).toFixed(0)}%` : '--%'}
-                    </Text>
-                </View>
-
-                <View style={styles.detailRow}>
-                    <MaterialCommunityIcons name="weather-windy" size={20} color="#aaa" />
-                    <Text style={styles.detailLabel}>Velocidade do vento</Text>
-                    <Text style={styles.detailValue}>{weatherData?.current?.wind_speed} km/h</Text>
-                </View>
-
-                <View style={styles.detailRow}>
-                    <MaterialCommunityIcons name="water-percent" size={20} color="#aaa" />
-                    <Text style={styles.detailLabel}>Umidade do ar</Text>
-                    <Text style={styles.detailValue}>{weatherData?.current?.humidity}%</Text>
-                </View>
-
-                <View style={styles.detailRowUv}>
-                    <MaterialCommunityIcons name="white-balance-sunny" size={20} color="#aaa" />
-                    <Text style={styles.detailLabel}>Índice UV</Text>
-                    <Text style={styles.detailValue}>{weatherData?.current?.uvi}</Text>
+                    <MaterialCommunityIcons name={weatherIconMap[weatherData?.current?.weather[0]?.main || ''] || 'weather-cloudy'} size={80} color="#fff" />
                 </View>
             </View>
 
-            {/* 3. Forecast */}
+            <View style={styles.detailsList}>
+                <View style={styles.detailRow}><MaterialCommunityIcons name="thermometer" size={20} color="#aaa" /><Text style={styles.detailLabel}>Sensação térmica</Text><Text style={styles.detailValue}>{Math.round(weatherData?.current?.feels_like ?? 0)}°C</Text></View>
+                <View style={styles.detailRow}><MaterialCommunityIcons name="weather-rainy" size={20} color="#aaa" /><Text style={styles.detailLabel}>Probabilidade de chuva</Text><Text style={styles.detailValue}>{weatherData?.daily[0] ? `${(weatherData.daily[0].pop * 100).toFixed(0)}%` : '--%'}</Text></View>
+                <View style={styles.detailRow}><MaterialCommunityIcons name="weather-windy" size={20} color="#aaa" /><Text style={styles.detailLabel}>Velocidade do vento</Text><Text style={styles.detailValue}>{weatherData?.current?.wind_speed.toFixed(1)} km/h</Text></View>
+                <View style={styles.detailRow}><MaterialCommunityIcons name="water-percent" size={20} color="#aaa" /><Text style={styles.detailLabel}>Umidade do ar</Text><Text style={styles.detailValue}>{weatherData?.current?.humidity}%</Text></View>
+                <View style={styles.detailRowUv}><MaterialCommunityIcons name="white-balance-sunny" size={20} color="#aaa" /><Text style={styles.detailLabel}>Índice UV</Text><Text style={styles.detailValue}>{weatherData?.current?.uvi}</Text></View>
+            </View>
+
             <View style={styles.forecastList}>
                 <FlatList
                     data={weatherData?.daily}
@@ -197,32 +149,19 @@ export default function WeatherScreen() {
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     renderItem={({ item, index }) => {
-                        if (index === 0) return null; // Pula o dia de hoje
-                        if (index > 5) return null;  // Mostra apenas os próximos 5 dias
-
-                            return (
+                        if (index === 0) return null;
+                        if (index > 5) return null;
+                        return (
                             <View style={styles.dayCard}>
-                                {/* Transforma a data completa em dia da semana */}
-                                <Text style={styles.dayText}>
-                                    {new Date(item.dt * 1000).toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').replace(/^\w/, c => c.toUpperCase())}
-                                </Text>
-
-                                {/* Ícone dinâmico */}
-                                <MaterialCommunityIcons 
-                                    name={weatherIconMap[item.weather[0].main] || 'weather-cloudy'} 
-                                    size={30} 
-                                    color="#fff" 
-                                />
-
-                                {/* Usando as temperaturas MIN e MAX que vêm da API */}
+                                <Text style={styles.dayText}>{new Date(item.dt * 1000).toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').replace(/^\w/, c => c.toUpperCase())}</Text>
+                                <MaterialCommunityIcons name={weatherIconMap[item.weather[0].main] || 'weather-cloudy'} size={30} color="#fff" />
                                 <Text style={styles.maxTemp}>{Math.round(item.temp.max)}°</Text>
                                 <Text style={styles.minTemp}>{Math.round(item.temp.min)}°</Text>
                             </View>
-                        )
+                        );
                     }}
                 />
             </View>
-
         </View>
     );
 }
@@ -234,113 +173,109 @@ const styles = StyleSheet.create({
         paddingHorizontal: 14,
         paddingTop: 50
     },
-    card: {
-        padding: 20,
-        borderRadius: 20,
-        marginBottom: 16,
-        overflow: "hidden"
+    errorText: {
+        color: '#ff6b6b',
+        fontSize: 18, 
+        textAlign: 'center', 
+        padding: 20 
+    },
+    card: { 
+        padding: 20, 
+        borderRadius: 20, 
+        marginBottom: 16, 
+        overflow: "hidden" 
+    },
+    city: { 
+        fontSize: 24, 
+        fontWeight: "bold", 
+        color: "#fff" 
+    },
+    date: { 
+        fontSize: 14, 
+        color: "#d3d3d3" 
+    },
+    row: { 
+        flexDirection: "row", 
+        justifyContent: "space-between", 
+        alignItems: "center", 
+        marginTop: 20 
+    },
+    temp: { 
+        fontSize: 80, 
+        fontWeight: "bold", 
+        color: "#fff" 
+    },
+    tempMinMax: { 
+        fontSize: 16, 
+        color: "#d3d3d3", 
+        textTransform: "capitalize", 
+        textAlign: "left" 
+    },
+    condition: { 
+        fontSize: 16, 
+        color: "#bbb", 
+        marginTop: 2, 
+        textTransform: 'capitalize' 
+    },
+    detailsList: { 
+        backgroundColor: "#1c1c24", 
+        borderRadius: 12, 
+        padding: 20, 
+        marginBottom: 12 
+    },
+    detailRow: { 
+        flexDirection: "row", 
+        alignItems: "center", 
+        paddingVertical: 14, 
+        paddingHorizontal: 10, 
+        borderBottomWidth: 1, 
+        borderBottomColor: "#2a2a34" 
+    },
+    detailRowUv: { 
+        flexDirection: "row", 
+        alignItems: "center", 
+        paddingVertical: 14, 
+        paddingHorizontal: 10 
+    },
+    detailLabel: { 
+        flex: 1, 
+        marginLeft: 10, 
+        color: "#aaa", 
+        fontSize: 14 
+    },
+    detailValue: { 
+        color: "#fff", 
+        fontSize: 14, 
+        fontWeight: "bold" 
+    },
+    forecastList: { 
+        backgroundColor: "#1c1c24", 
+        borderRadius: 12, 
+        padding: 20 
+    },
+    dayCard: { 
+        backgroundColor: "rgba(255, 255, 255, 0.05)", 
+        borderRadius: 10, 
+        paddingVertical: 12, 
+        paddingHorizontal: 16, 
+        alignItems: "center", 
+        justifyContent: "center", 
+        marginRight: 12, 
+        width: 70 
+    },
+    dayText: { 
+        color: "#fff", 
+        fontSize: 14, 
+        marginBottom: 6 
+    },
+    maxTemp: { 
 
+        color: "#fff", 
+        fontSize: 14, 
+        fontWeight: "bold" 
     },
-    mainCard: {
-        borderRadius: 12,
-        padding: 20,
-        marginBottom: 12,
+    minTemp: { 
+        color: "#aaa", 
+        fontSize: 14 
     },
-    city: {
-        fontSize: 24,
-        fontWeight: "bold",
-        color: "#fff",
-    },
-    date: {
-        fontSize: 14,
-        color: "#d3d3d3",
-    },
-    row: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginTop: 20
-    },
-    temp: {
-        fontSize: 80,
-        fontWeight: "bold",
-        color: "#fff",
-    },
-    tempMinMax: {
-        fontSize: 16,
-        color: "#d3d3d3",
-        textTransform: "capitalize",
-        textAlign: "left"
-    },
-    condition: {
-        fontSize: 16,
-        color: "#bbb",
-        marginTop: 2
-    },
-    detailsList: {
-        backgroundColor: "#1c1c24",
-        borderRadius: 12,
-        padding: 20,
-        marginBottom: 12,
-    },
-    detailRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingVertical: 14,
-        paddingHorizontal: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: "#2a2a34"
-    },
-    detailRowUv: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingVertical: 14,
-        paddingHorizontal: 10
-    },
-    detailText: {
-        color: "#ddd",
-        marginLeft: 10,
-        fontSize: 14,
-    },
-    detailLabel: {
-        flex: 1,
-        marginLeft: 10,
-        color: "#aaa",
-        fontSize: 14
-    },
-    detailValue: {
-        color: "#fff",
-        fontSize: 14,
-        fontWeight: "bold"
-    },
-    forecastList: {
-        backgroundColor: "#1c1c24",
-        borderRadius: 12,
-        padding: 20,
-    },
-    dayCard: {
-        backgroundColor: "#1c1c24",
-        borderRadius: 10,
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        alignItems: "center",
-        justifyContent: "center",
-        marginRight: 12,
-        width: 70
-    },
-    dayText: {
-        color: "#fff",
-        fontSize: 14,
-        marginBottom: 6
-    },
-    maxTemp: {
-        color: "#fff",
-        fontSize: 14,
-        fontWeight: "bold"
-    },
-    minTemp: {
-        color: "#aaa",
-        fontSize: 14
-    },
-}
-);
+});
