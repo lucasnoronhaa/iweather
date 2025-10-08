@@ -2,7 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, ImageBackground, StyleSheet, Text, View } from "react-native";
-import { get5DayForecast, getWeatherByCoords } from '../../scripts/weatherApi';
+import { getWeatherData } from '../../scripts/weatherApi';
 
 export default function WeatherScreen() {
     const { lat, lon, city } = useLocalSearchParams<{ lat: string; lon: string; city: string }>();
@@ -34,6 +34,7 @@ export default function WeatherScreen() {
             feels_like: number;
             humidity: number;
             wind_speed: number;
+            uvi: number;
             weather: {
                 description: string;
                 main: string;
@@ -58,7 +59,6 @@ export default function WeatherScreen() {
     const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [forecastData, setForecastData] = useState<ForecastListItem[]>([]);
 
     useEffect(() => {
     const loadWeatherData = async () => {
@@ -67,19 +67,14 @@ export default function WeatherScreen() {
 
         try {
             setLoading(true); // Avisa que estamos começando a carregar
-            const data = await getWeatherByCoords(lat, lon);
-            const forecastData = await get5DayForecast(lat, lon);
-            console.log("DADOS DO TEMPO:", data);
+            const data = await getWeatherData(lat, lon);
             setWeatherData(data);
-            setForecastData(forecastData); 
-        } catch (err) {
-            // 3. Tratamento de erro mais seguro
-            setError("Não foi possível carregar os dados do tempo. Verifique o nome da cidade e tente novamente.");
-            setWeatherData(null); // <-- Limpa os dados antigos em caso de erro
-        } finally {
-            setLoading(false); // Avisa que terminamos de carregar (com sucesso ou erro)
-        }
-    };
+            } catch (err) {
+                setError("Não foi possível carregar os dados do tempo.");
+            } finally {
+                setLoading(false);
+            }
+        };
 
     loadWeatherData();
 }, [lat, lon]); // Este array faz o código rodar novamente se a cidade mudar
@@ -170,7 +165,9 @@ export default function WeatherScreen() {
                 <View style={styles.detailRow}>
                     <MaterialCommunityIcons name="weather-rainy" size={20} color="#aaa" />
                     <Text style={styles.detailLabel}>Probabilidade de chuva</Text>
-                    <Text style={styles.detailValue}>--%</Text>
+                    <Text style={styles.detailValue}>
+                        {weatherData?.daily[0] ? `${(weatherData.daily[0].pop * 100).toFixed(0)}%` : '--%'}
+                    </Text>
                 </View>
 
                 <View style={styles.detailRow}>
@@ -188,36 +185,41 @@ export default function WeatherScreen() {
                 <View style={styles.detailRowUv}>
                     <MaterialCommunityIcons name="white-balance-sunny" size={20} color="#aaa" />
                     <Text style={styles.detailLabel}>Índice UV</Text>
-                    <Text style={styles.detailValue}>--</Text>
+                    <Text style={styles.detailValue}>{weatherData?.current?.uvi}</Text>
                 </View>
             </View>
 
             {/* 3. Forecast */}
             <View style={styles.forecastList}>
                 <FlatList
-                    data={forecastData}
+                    data={weatherData?.daily}
                     keyExtractor={(item) => item.dt.toString()}
                     horizontal
                     showsHorizontalScrollIndicator={false}
-                    renderItem={({ item }) => (
-                        <View style={styles.dayCard}>
-                            {/* Transforma a data completa em dia da semana */}
-                            <Text style={styles.dayText}>
-                                {new Date(item.dt * 1000).toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').replace(/^\w/, c => c.toUpperCase())}
-                            </Text>
+                    renderItem={({ item, index }) => {
+                        if (index === 0) return null; // Pula o dia de hoje
+                        if (index > 5) return null;  // Mostra apenas os próximos 5 dias
 
-                            {/* Ícone dinâmico */}
-                            <MaterialCommunityIcons 
-                                name={weatherIconMap[item.weather[0].main] || 'weather-cloudy'} 
-                                size={30} 
-                                color="#fff" 
-                            />
+                            return (
+                            <View style={styles.dayCard}>
+                                {/* Transforma a data completa em dia da semana */}
+                                <Text style={styles.dayText}>
+                                    {new Date(item.dt * 1000).toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').replace(/^\w/, c => c.toUpperCase())}
+                                </Text>
 
-                            {/* Usando a temperatura do item da previsão */}
-                            <Text style={styles.maxTemp}>{Math.round(item.main.temp_max)}°</Text>
-                            <Text style={styles.minTemp}>{Math.round(item.main.temp_min)}°</Text>
-                        </View>
-                    )}
+                                {/* Ícone dinâmico */}
+                                <MaterialCommunityIcons 
+                                    name={weatherIconMap[item.weather[0].main] || 'weather-cloudy'} 
+                                    size={30} 
+                                    color="#fff" 
+                                />
+
+                                {/* Usando as temperaturas MIN e MAX que vêm da API */}
+                                <Text style={styles.maxTemp}>{Math.round(item.temp.max)}°</Text>
+                                <Text style={styles.minTemp}>{Math.round(item.temp.min)}°</Text>
+                            </View>
+                        )
+                    }}
                 />
             </View>
 

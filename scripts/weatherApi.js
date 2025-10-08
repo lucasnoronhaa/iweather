@@ -1,37 +1,18 @@
 const API_KEY = process.env.EXPO_PUBLIC_WEATHER_API_KEY;
 const BASE_URL = 'https://api.openweathermap.org/data/3.0/onecall';
 
-export async function getWeatherByCoords(lat, lon) {
-    try {
-        const response = await fetch(
-            `${BASE_URL}?lat=${lat}&lon=${lon}&exclude=minutely,hourly,alerts&appid=${API_KEY}&units=metric&lang=pt_br`
-        );
-        const data = await response.json();
-
-        if (response.ok) {
-            return data;
-        } else {
-            throw new Error(data.message || 'Erro ao buscar dados do clima');
-        }
-    } catch (error) {
-        console.error('Erro na API:', error);
-        return null;
-    }
-}
-
-export const get5DayForecast = async (lat, lon) => {
+  export const getWeatherData = async (lat, lon) => {
     const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=pt_br`
+        `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&exclude=minutely,hourly,alerts&appid=${API_KEY}&units=metric&lang=pt_br`
     );
+
     if (!response.ok) {
-        throw new Error('Não foi possivel obter a previsão dos próximos dias.');
-}
+        throw new Error("Não foi possível obter os dados do clima.");
+    }
+
     const data = await response.json();
-
-    const dailyForecasts = data.list.filter(item => item.dt_txt.includes("12:00:00"));
-
-    return dailyForecasts;
-}
+    return data;
+};
 
 export const searchCities = async (query) => {
     if (query.length < 3) return []; // Busca com pelo menos 3 caracteres

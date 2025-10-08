@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Text, Alert } from 'react-native';
+import { View, TextInput, Button, StyleSheet, Text, Alert, TouchableOpacity } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
 export default function LoginScreen() {
@@ -39,6 +39,21 @@ export default function LoginScreen() {
     setLoading(false);
   };
 
+  // Função para recuperação de senha
+  const handleForgotPassword = async () => {
+    if (!email) {
+      Alert.alert('Recuperação de Senha', 'Por favor, digite seu email no campo acima para recuperar a senha.');
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'exp://192.168.0.1:8081', // URL para onde o usuário será redirecionado após clicar no link do email. Ajuste conforme necessário.
+    });
+    if (error) Alert.alert('Erro', error.message);
+    else Alert.alert('Verifique seu Email', 'Um link para redefinir sua senha foi enviado para o seu email.');
+    setLoading(false);
+  };
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>☁️ iWeather</Text>
@@ -65,6 +80,11 @@ export default function LoginScreen() {
         <View style={styles.buttonContainer}>
             <Button title={loading ? "Carregando..." : "Cadastrar"} onPress={handleSignUp} disabled={loading} color="#555" />
         </View>
+        <TouchableOpacity onPress={handleForgotPassword} style={{ marginTop: 20 }}>
+          <Text style={{ color: '#aaa', textAlign: 'center' }}>
+            Esqueci minha senha
+          </Text>
+        </TouchableOpacity>
         </View>
     );
 }
