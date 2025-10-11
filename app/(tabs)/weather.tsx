@@ -11,7 +11,7 @@ export default function WeatherScreen() {
     const { lat, lon, city } = useLocalSearchParams<{ lat: string; lon: string; city: string }>();
 
     // Tipagem para as chaves de condição e momento
-    type WeatherCondition = 'Clear' | 'Clouds' | 'Rain' | 'Thunderstorm' | 'Drizzle' | 'Snow' | 'Mist' | 'Default';
+    type WeatherCondition = 'Clear' | 'Clouds' | 'Rain' | 'Thunderstorm' | 'Drizzle' | 'Default';
     type Moment = 'day' | 'night';
     type BackgroundImagesType = {
         [key in WeatherCondition]: {
@@ -37,23 +37,14 @@ export default function WeatherScreen() {
             day: require('../../assets/images/Weather=Storm, Moment=Day.png'),
             night: require('../../assets/images/Weather=Storm, Moment=Night.png'),
         },
-        // Adicionando mais condições para cobrir mais casos
         Drizzle: {
             day: require('../../assets/images/Weather=Rain, Moment=Day.png'),
             night: require('../../assets/images/Weather=Rain, Moment=Night.png'),
         },
-        Snow: {
-            day: require('../../assets/images/Weather=Snow, Moment=Day.png'), // Supondo que você tenha essas imagens
-            night: require('../../assets/images/Weather=Snow, Moment=Night.png'), // Supondo que você tenha essas imagens
-        },
-        Mist: {
-            day: require('../../assets/images/Weather=Mist, Moment=Day.png'), // Supondo que você tenha essas imagens
-            night: require('../../assets/images/Weather=Mist, Moment=Night.png'), // Supondo que você tenha essas imagens
-        },
         Default: {
-            day: require('../../assets/images/image.png'),
-            night: require('../../assets/images/image.png'),
-        }
+            day: require('../../assets/images/Weather=Clear, Moment=Day.png'),
+            night: require('../../assets/images/Weather=Clear, Moment=Night.png'),
+        },
     };
 
     // Mapa de condições da API para nomes de ícones
