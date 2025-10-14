@@ -126,11 +126,41 @@ export default function WeatherScreen() {
             </View>
 
             <View style={styles.detailsList}>
-                <View style={styles.detailRow}><MaterialCommunityIcons name="thermometer" size={20} color="#aaa" /><Text style={styles.detailLabel}>Sensação térmica</Text><Text style={styles.detailValue}>{Math.round(weatherData?.current?.feels_like ?? 0)}°C</Text></View>
-                <View style={styles.detailRow}><MaterialCommunityIcons name="weather-rainy" size={20} color="#aaa" /><Text style={styles.detailLabel}>Probabilidade de chuva</Text><Text style={styles.detailValue}>{weatherData?.daily[0] ? `${(weatherData.daily[0].pop * 100).toFixed(0)}%` : '--%'}</Text></View>
-                <View style={styles.detailRow}><MaterialCommunityIcons name="weather-windy" size={20} color="#aaa" /><Text style={styles.detailLabel}>Velocidade do vento</Text><Text style={styles.detailValue}>{weatherData?.current?.wind_speed.toFixed(1)} km/h</Text></View>
-                <View style={styles.detailRow}><MaterialCommunityIcons name="water-percent" size={20} color="#aaa" /><Text style={styles.detailLabel}>Umidade do ar</Text><Text style={styles.detailValue}>{weatherData?.current?.humidity}%</Text></View>
-                <View style={styles.detailRowUv}><MaterialCommunityIcons name="white-balance-sunny" size={20} color="#aaa" /><Text style={styles.detailLabel}>Índice UV</Text><Text style={styles.detailValue}>{weatherData?.current?.uvi}</Text></View>
+                <View style={styles.detailRow}>
+                    <MaterialCommunityIcons name="thermometer" size={20} color="#aaa" />
+
+                    <Text style={styles.detailLabel}>Sensação térmica</Text>
+                    <Text style={styles.detailValue}>{Math.round(weatherData?.current?.feels_like ?? 0)}°C</Text>
+
+                </View>
+
+                <View style={styles.detailRow}>
+                    <MaterialCommunityIcons name="weather-rainy" size={20} color="#aaa" />
+
+                    <Text style={styles.detailLabel}>Probabilidade de chuva</Text>
+                    <Text style={styles.detailValue}>{weatherData?.daily[0] ? `${(weatherData.daily[0].pop * 100).toFixed(0)}%` : '--%'}</Text>
+
+                </View>
+
+                <View style={styles.detailRow}>
+                    <MaterialCommunityIcons name="weather-windy" size={20} color="#aaa" />
+
+                    <Text style={styles.detailLabel}>Velocidade do vento</Text>
+                    <Text style={styles.detailValue}>{weatherData?.current?.wind_speed?.toFixed(1) ?? '--'} km/h</Text>
+
+                </View>
+
+                <View style={styles.detailRow}>
+                    <MaterialCommunityIcons name="water-percent" size={20} color="#aaa" />
+                    <Text style={styles.detailLabel}>Umidade do ar</Text>
+                    <Text style={styles.detailValue}>{weatherData?.current?.humidity}%</Text>
+                </View>
+
+                <View style={styles.detailRowUv}>
+                    <MaterialCommunityIcons name="white-balance-sunny" size={20} color="#aaa" />
+                    <Text style={styles.detailLabel}>Índice UV</Text>
+                    <Text style={styles.detailValue}>{weatherData?.current?.uvi}</Text>
+                </View>
             </View>
 
             <View style={styles.forecastList}>
@@ -166,107 +196,107 @@ const styles = StyleSheet.create({
     },
     errorText: {
         color: '#ff6b6b',
-        fontSize: 18, 
-        textAlign: 'center', 
-        padding: 20 
+        fontSize: 18,
+        textAlign: 'center',
+        padding: 20
     },
-    card: { 
-        padding: 20, 
-        borderRadius: 20, 
-        marginBottom: 16, 
-        overflow: "hidden" 
+    card: {
+        padding: 20,
+        borderRadius: 20,
+        marginBottom: 16,
+        overflow: "hidden"
     },
-    city: { 
-        fontSize: 24, 
-        fontWeight: "bold", 
-        color: "#fff" 
+    city: {
+        fontSize: 24,
+        fontWeight: "bold",
+        color: "#fff"
     },
-    date: { 
-        fontSize: 14, 
-        color: "#d3d3d3" 
+    date: {
+        fontSize: 14,
+        color: "#d3d3d3"
     },
-    row: { 
-        flexDirection: "row", 
-        justifyContent: "space-between", 
-        alignItems: "center", 
-        marginTop: 20 
+    row: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginTop: 20
     },
-    temp: { 
-        fontSize: 80, 
-        fontWeight: "bold", 
-        color: "#fff" 
+    temp: {
+        fontSize: 80,
+        fontWeight: "bold",
+        color: "#fff"
     },
-    tempMinMax: { 
-        fontSize: 16, 
-        color: "#d3d3d3", 
-        textTransform: "capitalize", 
-        textAlign: "left" 
+    tempMinMax: {
+        fontSize: 16,
+        color: "#d3d3d3",
+        textTransform: "capitalize",
+        textAlign: "left"
     },
-    condition: { 
-        fontSize: 16, 
-        color: "#bbb", 
-        marginTop: 2, 
-        textTransform: 'capitalize' 
+    condition: {
+        fontSize: 16,
+        color: "#bbb",
+        marginTop: 2,
+        textTransform: 'capitalize'
     },
-    detailsList: { 
-        backgroundColor: "#1c1c24", 
-        borderRadius: 12, 
-        padding: 20, 
-        marginBottom: 12 
+    detailsList: {
+        backgroundColor: "#1c1c24",
+        borderRadius: 12,
+        padding: 20,
+        marginBottom: 12
     },
-    detailRow: { 
-        flexDirection: "row", 
-        alignItems: "center", 
-        paddingVertical: 14, 
-        paddingHorizontal: 10, 
-        borderBottomWidth: 1, 
-        borderBottomColor: "#2a2a34" 
+    detailRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: 14,
+        paddingHorizontal: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: "#2a2a34"
     },
-    detailRowUv: { 
-        flexDirection: "row", 
-        alignItems: "center", 
-        paddingVertical: 14, 
-        paddingHorizontal: 10 
+    detailRowUv: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: 14,
+        paddingHorizontal: 10
     },
-    detailLabel: { 
-        flex: 1, 
-        marginLeft: 10, 
-        color: "#aaa", 
-        fontSize: 14 
+    detailLabel: {
+        flex: 1,
+        marginLeft: 10,
+        color: "#aaa",
+        fontSize: 14
     },
-    detailValue: { 
-        color: "#fff", 
-        fontSize: 14, 
-        fontWeight: "bold" 
+    detailValue: {
+        color: "#fff",
+        fontSize: 14,
+        fontWeight: "bold"
     },
-    forecastList: { 
-        backgroundColor: "#1c1c24", 
-        borderRadius: 12, 
-        padding: 20 
+    forecastList: {
+        backgroundColor: "#1c1c24",
+        borderRadius: 12,
+        padding: 20
     },
-    dayCard: { 
-        backgroundColor: "rgba(255, 255, 255, 0.05)", 
-        borderRadius: 10, 
-        paddingVertical: 12, 
-        paddingHorizontal: 16, 
-        alignItems: "center", 
-        justifyContent: "center", 
-        marginRight: 12, 
-        width: 70 
+    dayCard: {
+        backgroundColor: "rgba(255, 255, 255, 0.05)",
+        borderRadius: 10,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        alignItems: "center",
+        justifyContent: "center",
+        marginRight: 12,
+        width: 70
     },
-    dayText: { 
-        color: "#fff", 
-        fontSize: 14, 
-        marginBottom: 6 
+    dayText: {
+        color: "#fff",
+        fontSize: 14,
+        marginBottom: 6
     },
-    maxTemp: { 
+    maxTemp: {
 
-        color: "#fff", 
-        fontSize: 14, 
-        fontWeight: "bold" 
+        color: "#fff",
+        fontSize: 14,
+        fontWeight: "bold"
     },
-    minTemp: { 
-        color: "#aaa", 
-        fontSize: 14 
+    minTemp: {
+        color: "#aaa",
+        fontSize: 14
     },
 });

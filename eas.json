@@ -9,7 +9,12 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal"
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_WEATHER_API_KEY": "@WEATHER_API_KEY"
+      }
     },
     "production": {
       "autoIncrement": true
