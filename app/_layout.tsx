@@ -1,43 +1,44 @@
-import { Stack, useRouter, useSegments } from 'expo-router';
-import { useEffect } from 'react';
+// app/(tabs)/_layout.tsx
+import { Tabs, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
+import { getUserLastSearch } from '../scripts/weatherApi';
 import { ActivityIndicator, View } from 'react-native';
-import 'react-native-url-polyfill/auto';
-import { AuthProvider, useAuth } from '../context/AuthContext';
 
-const InitialLayout = () => {
-  const { session, loading } = useAuth();
-  const segments = useSegments();
+export default function TabsLayout() {
   const router = useRouter();
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    if (loading) return; // Se estiver carregando a sessão, não faz nada ainda
+    const checkLastCity = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const lastSearch = await getUserLastSearch(session.user.id);
+        if (lastSearch) {
+          // Se encontramos uma busca salva, navegamos direto para a tela de clima
+          router.replace({ pathname: '/weather', params: lastSearch });
+        }
+      }
+      setIsChecking(false); // Termina a verificação
+    };
 
-    const inAuthGroup = segments[0] === '(auth)';
+    checkLastCity();
+  }, []);
 
-    if (session && inAuthGroup) {
-      // Se o usuário está logado E está na tela de login, redireciona para o app
-      router.replace('/(tabs)');
-    } else if (!session && !inAuthGroup) {
-      // Se o usuário NÃO está logado E NÃO está na tela de login, redireciona para o login
-      router.replace('/(auth)/login');
-    }
-  }, [session, loading, segments]);
-
-  // Enquanto a sessão está sendo carregada, mostramos um indicador
-  if (loading) {
-      return <View style={{flex: 1, justifyContent: 'center', backgroundColor: '#13131a'}}><ActivityIndicator size="large" /></View>;
+  // Mostra um loading enquanto verificamos a última cidade
+  if (isChecking) {
+    return <View style={{flex: 1, justifyContent: 'center', backgroundColor: '#13131a'}}><ActivityIndicator size="large" /></View>;
   }
 
+  // Se não houver cidade salva, carrega as abas normalmente, começando pela busca.
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-    </Stack>
-  )
-}
-
-export default function RootLayout() {
-  return (
-    <AuthProvider>
-      <InitialLayout />
-    </AuthProvider>
+    <Tabs screenOptions={{
+        headerShown: false,
+        tabBarStyle: { backgroundColor: '#1c1c24', borderTopWidth: 0 },
+        tabBarActiveTintColor: '#8FB2F5',
+    }}>
+      <Tabs.Screen name="index" options={{ title: 'Buscar' }} />
+      <Tabs.Screen name="weather" options={{ href: null }} /> 
+    </Tabs>
   );
 }

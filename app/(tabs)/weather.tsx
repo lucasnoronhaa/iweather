@@ -2,7 +2,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, StyleSheet, Text, View } from "react-native";
-import { getWeatherData } from '../../scripts/weatherApi';
+import { supabase } from '../../lib/supabase';
+import { getWeatherData, updateUserLastSearch } from '../../scripts/weatherApi';
 
 // Tipagem para os nomes dos ícones, para mais segurança
 type WeatherIconName = "weather-sunny" | "weather-cloudy" | "weather-rainy" | "weather-night-partly-cloudy" | "weather-snowy" | "weather-fog" | "weather-lightning";
@@ -74,6 +75,12 @@ export default function WeatherScreen() {
                 }
                 const data = await getWeatherData(lat, lon);
                 setWeatherData(data);
+
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                // Salva os parâmetros da busca atual (city, lat, lon) no perfil do usuário
+                updateUserLastSearch(session.user.id, { city, lat, lon });
+            }
 
                 if (data && data.current) {
                     const currentTime = data.current.dt;
