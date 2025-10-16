@@ -13,11 +13,18 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_WEATHER_API_KEY": "@WEATHER_API_KEY"
+        "EXPO_PUBLIC_WEATHER_API_KEY": "57702b8c7818a570522175be2d774e59",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://tdegishfpwfnihcaiysk.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkZWdpc2hmcHdmbmloY2FpeXNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1NzU2ODgsImV4cCI6MjA3NTE1MTY4OH0.KZap_n54VA4XhCVdaP7K6oZTRM4jNdxiNME6Pxwkbxo"
       }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_WEATHER_API_KEY": "57702b8c7818a570522175be2d774e59",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://tdegishfpwfnihcaiysk.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkZWdpc2hmcHdmbmloY2FpeXNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1NzU2ODgsImV4cCI6MjA3NTE1MTY4OH0.KZap_n54VA4XhCVdaP7K6oZTRM4jNdxiNME6Pxwkbxo"
+      }
     }
   },
   "submit": {
